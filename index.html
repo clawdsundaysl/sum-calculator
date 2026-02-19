@@ -83,7 +83,7 @@
       case '*': res = a * b; break;
       case '/': res = a / b; break;
     }
-    result.textContent = res;
+    result.textContent = parseFloat(res.toFixed(10));
     launchFireworks();
   });
 
