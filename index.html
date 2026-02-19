@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sum Calculator</title>
+<title>Calculator</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f0f2f5; }
   .card { background: #fff; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); width: 320px; }
   h1 { font-size: 1.4rem; margin-bottom: 1.5rem; text-align: center; color: #1a1a2e; }
   label { display: block; font-size: 0.85rem; color: #555; margin-bottom: 0.3rem; }
-  input { width: 100%; padding: 0.6rem 0.8rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; margin-bottom: 1rem; transition: border-color 0.2s; }
-  input:focus { outline: none; border-color: #4361ee; }
+  input, select { width: 100%; padding: 0.6rem 0.8rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; margin-bottom: 1rem; transition: border-color 0.2s; }
+  input:focus, select:focus { outline: none; border-color: #4361ee; }
   input.error { border-color: #e63946; }
   button { width: 100%; padding: 0.7rem; background: #4361ee; color: #fff; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; transition: background 0.2s; }
   button:hover { background: #3a56d4; }
@@ -21,9 +21,16 @@
 </head>
 <body>
 <div class="card">
-  <h1>Sum Calculator</h1>
+  <h1>Calculator</h1>
   <label for="num1">First Number</label>
   <input type="text" id="num1" placeholder="Enter a number" autocomplete="off">
+  <label for="op">Operation</label>
+  <select id="op">
+    <option value="+" selected>+ Add</option>
+    <option value="-">− Subtract</option>
+    <option value="*">× Multiply</option>
+    <option value="/">÷ Divide</option>
+  </select>
   <label for="num2">Second Number</label>
   <input type="text" id="num2" placeholder="Enter a number" autocomplete="off">
   <button id="calcBtn">Calculate</button>
@@ -33,6 +40,7 @@
 <script>
   const num1 = document.getElementById('num1');
   const num2 = document.getElementById('num2');
+  const op = document.getElementById('op');
   const btn = document.getElementById('calcBtn');
   const result = document.getElementById('result');
   const errorMsg = document.getElementById('errorMsg');
@@ -61,10 +69,22 @@
       errorMsg.textContent = 'Please enter valid numbers in both fields.';
       return;
     }
-    result.textContent = a + b;
+    const operator = op.value;
+    if (operator === '/' && b === 0) {
+      errorMsg.textContent = 'Cannot divide by zero.';
+      return;
+    }
+    let res;
+    switch (operator) {
+      case '+': res = a + b; break;
+      case '-': res = a - b; break;
+      case '*': res = a * b; break;
+      case '/': res = a / b; break;
+    }
+    result.textContent = res;
   });
 
-  [num1, num2].forEach(el => el.addEventListener('keydown', function(e) {
+  [num1, num2, op].forEach(el => el.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') btn.click();
   }));
 </script>
