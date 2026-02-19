@@ -84,12 +84,66 @@
       case '/': res = a / b; break;
     }
     result.textContent = parseFloat(res.toFixed(10));
+    playFartSound();
     launchFireworks();
   });
 
   [num1, num2, op].forEach(el => el.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') btn.click();
   }));
+
+  // Fart sound synthesis
+  let audioCtx = null;
+  function playFartSound() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = audioCtx;
+    const now = ctx.currentTime;
+    const duration = 0.8;
+
+    // Master gain envelope: quick attack, sustain, fade out
+    const master = ctx.createGain();
+    master.gain.setValueAtTime(0, now);
+    master.gain.linearRampToValueAtTime(0.6, now + 0.03);
+    master.gain.setValueAtTime(0.6, now + 0.3);
+    master.gain.linearRampToValueAtTime(0, now + duration);
+    master.connect(ctx.destination);
+
+    // Sawtooth oscillator sweeping 80Hz → 30Hz
+    const osc = ctx.createOscillator();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(80, now);
+    osc.frequency.exponentialRampToValueAtTime(30, now + 0.7);
+    const oscGain = ctx.createGain();
+    oscGain.gain.setValueAtTime(0.4, now);
+    osc.connect(oscGain);
+    oscGain.connect(master);
+    osc.start(now);
+    osc.stop(now + duration);
+
+    // Brown noise (integrated white noise) through low-pass filter
+    const bufferSize = ctx.sampleRate * duration;
+    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
+    let lastOut = 0;
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      lastOut = (lastOut + (0.02 * white)) / 1.02;
+      data[i] = lastOut * 3.5;
+    }
+    const noiseSrc = ctx.createBufferSource();
+    noiseSrc.buffer = noiseBuffer;
+    const lpf = ctx.createBiquadFilter();
+    lpf.type = 'lowpass';
+    lpf.frequency.setValueAtTime(150, now);
+    lpf.frequency.exponentialRampToValueAtTime(60, now + 0.7);
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.5, now);
+    noiseSrc.connect(lpf);
+    lpf.connect(noiseGain);
+    noiseGain.connect(master);
+    noiseSrc.start(now);
+    noiseSrc.stop(now + duration);
+  }
 
   // Fireworks animation
   const canvas = document.getElementById('fireworksCanvas');
